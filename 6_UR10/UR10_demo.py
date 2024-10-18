@@ -1,8 +1,9 @@
 from coppeliasim_zmqremoteapi_client import *
+import math
 
 client = RemoteAPIClient()
 sim = client.require('sim')
-        
+sim.startSimulation()
 
 class UR10:
     
@@ -23,8 +24,30 @@ class UR10:
 
     # Read the cartesion position of the robot
     def ReadPosition(self):
-        # ini 
+        pos = self.sim.getObjectPosition(self.simTip, self.simrobot)
+        ori = self.sim.getObjectOrientation(self.simTip, self.simrobot)
+        pos = [pos[i] * 1000 for i in range(3)]
+        ori = [ori[i] * 180 / math.pi for i in range(3)]
+        return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
+    
+    # Set robot position in mm and deg
+    def SetPosition(self, targetPos):
+        pos = [targetPos[i] / 1000 for i in range(3)]
+        ori = [targetPos[i + 3] * math.pi / 180 for i in range(3)]
+        self.sim.setObjectPosition(self.simTarget, pos, self.simrobot)
+        self.sim.setObjectOrientation(self.simTarget, ori, self.simrobot)
+        # Apply ik
+        #self.simIK.handleGroup(self.ikEnv, self.ikGroup, {'syncWorlds' : True, 'allowError' : True})
+        self.simIK.applyIkEnvironmentToScene(self.ikEnv, self.ikGroup)
+    
+    def MoveL(self, targetPos, speed):
         pass
+        
 
 if __name__ == '__main__':
         armrobot = UR10(client, 'UR10')
+        intialpos = armrobot.ReadPosition()
+        
+        # Set position of x, y, z, rx, ry, rz
+        pos = [500, -200, 400, 180, 0, 0]
+        armrobot.SetPosition(pos)
