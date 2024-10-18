@@ -14,8 +14,7 @@ This project contains various robot simulation demos using CoppeliaSim and Pytho
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone [<repository-url>](https://github.com/yudarw/coppeliasim-projects-with-zmqRemoteApi.git)
     ```
 
 2. Install the required Python packages:
