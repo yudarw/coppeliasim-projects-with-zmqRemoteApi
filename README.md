@@ -21,3 +21,20 @@ This project contains various robot simulation demos using CoppeliaSim and Pytho
     ```sh
     python -m pip install coppeliasim-zmqremoteapi-client
     ```
+## Materials
+### 1_getting started
+Contains the initial setup and basic demo for the Pioneer P3DX mobile robot.
+### 2_read_ultrasonic_sensor
+Demonstrates how to read data from ultrasonic sensors on the Pioneer P3DX robot.
+### 3_wall_follower_robot
+Implements a wall-following algorithm using the Pioneer P3DX robot and its ultrasonic sensors.
+### 4_vision_sensor
+Shows how to read data from a vision sensor and apply HSV filtering.
+### 5_object_tracking
+Contains scripts for object tracking using color filtering and contour detection.
+### 6_UR10
+Includes demos for controlling the UR10 robot using inverse kinematics and other functionalities.
+
+## Acknowledgments
+- [CoppeliaSim](https://www.coppeliarobotics.com/)
+- [OpenCV](https://opencv.org)
