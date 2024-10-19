@@ -3,12 +3,12 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R, Slerp
 import matplotlib.pyplot as plt
 
-def linear_interpolation(P1, P2, velocity, base_step_size=2):
+def linear_interpolation(intial_p, target_p, velocity, base_step_size=2):
     interpolated_points = []
     
     # Convert orientation from degrees to radians
-    P1_orientation_rad = np.radians(P1[3:])
-    P2_orientation_rad = np.radians(P2[3:])
+    P1_orientation_rad = np.radians(intial_p[3:])
+    P2_orientation_rad = np.radians(target_p[3:])
 
     # Convert Euler angles to quaternions
     P1_quat = R.from_euler('xyz', P1_orientation_rad).as_quat()
@@ -35,16 +35,13 @@ def linear_interpolation(P1, P2, velocity, base_step_size=2):
     
     for i in range(steps + 1):
         t = i / steps
-
         # Interpolate the position
-        interpolated_pos = [P1[j] + t * (P2[j] - P1[j]) for j in range(3)]
-        
+        interpolated_pos = [intial_p[j] + t * (target_p[j] - intial_p[j]) for j in range(3)]
         interpolated_quat = slerp(t).as_quat()
 
          # Convert the quaternion to Euler angles
         orientation_rad = R.from_quat(interpolated_quat).as_euler('xyz')
         orientation_deg = np.degrees(orientation_rad)
-        
         # Append the interpolated point
         interpolated_points.append([interpolated_pos[0], interpolated_pos[1], interpolated_pos[2], orientation_deg[0], orientation_deg[1], orientation_deg[2]])
 
@@ -87,15 +84,12 @@ def test_linear_interpolation():
     P2 = [600, -200, 400, 90, 0, 0]
     velocity = 10
     interpolated_points, steps, time_per_step = linear_interpolation(P1, P2, velocity)
-    #plot_interpolated_points(interpolated_points)
+    
     print(f'velocity: {velocity}')  
     print(f'steps: {steps}')
     print(f'time_per_step: {time_per_step}')
-    
-    #print(interpolated_points)
 
-    # Create a graph that showing the interpolated points as well as the orientation frame using matplotlib
-
+    plot_interpolated_points(interpolated_points)
 
 if __name__ == '__main__':
     test_linear_interpolation()

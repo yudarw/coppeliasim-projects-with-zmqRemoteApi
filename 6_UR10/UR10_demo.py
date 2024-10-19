@@ -25,6 +25,15 @@ class UR10:
         self.ikGroup = self.simIK.createGroup(self.ikEnv)
         self.simIK.addElementFromScene(self.ikEnv, self.ikGroup, self.simrobot, self.simTip, self.simTarget, self.simIK.constraint_pose)
 
+    # Get the position of the object relative to the robot base
+    def GetObjectPosition(self, objectName):
+        handle = sim.getObject(f'/{objectName}')
+        pos = self.sim.getObjectPosition(handle, self.simrobot)
+        ori = self.sim.getObjectOrientation(handle, self.simrobot)
+        pos = [pos[i] * 1000 for i in range(3)]
+        ori = [ori[i] * 180 / math.pi for i in range(3)]
+        return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
+
     # Read the cartesion position of the robot
     def ReadPosition(self):
         pos = self.sim.getObjectPosition(self.simTip, self.simrobot)
@@ -47,20 +56,11 @@ class UR10:
         initialPos = self.ReadPosition()
         interpolated_points, steps, time_per_step = linear_interpolation(initialPos, targetPos, speed, speed/20)
         for point in interpolated_points:
-            self.SetPosition(point)
-            
+            self.SetPosition(point)        
             if (time_per_step < 0.05):
                 time_per_step = 0.05
             time.sleep(time_per_step)
     
-    def GetObjectPosition(self, objectName):
-        handle = sim.getObject(f'/{objectName}')
-        pos = self.sim.getObjectPosition(handle, self.simrobot)
-        ori = self.sim.getObjectOrientation(handle, self.simrobot)
-        pos = [pos[i] * 1000 for i in range(3)]
-        ori = [ori[i] * 180 / math.pi for i in range(3)]
-        return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
-
     def MoveL_2(self, targetPos, speed):
         pass
 
