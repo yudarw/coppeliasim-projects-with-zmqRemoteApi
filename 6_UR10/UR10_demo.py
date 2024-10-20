@@ -80,7 +80,7 @@ class UR10:
 
     def MoveL(self, targetPos, speed):
         initialPos = self.ReadPosition()
-        interpolated_points, steps, time_per_step = linear_interpolation(initialPos, targetPos, speed, speed/20)
+        interpolated_points, steps, time_per_step = linear_interpolation(initialPos, targetPos, speed, speed/15)
         for point in interpolated_points:
             self.SetPosition(point)        
             if (time_per_step < 0.05):
@@ -95,9 +95,13 @@ class UR10:
             self.SetJointPosition(point)
             time.sleep(time_per_step)
 
+    # Linear movement by using coppeliasim moveToPose
     def MoveL_2(self, targetPos, speed):
         pass
 
+    
+    def MoveToConfig(self):
+        pass
 
 if __name__ == '__main__':
         
