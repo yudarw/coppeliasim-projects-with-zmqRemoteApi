@@ -2,7 +2,6 @@ from coppeliasim_zmqremoteapi_client import *
 import math
 import time
 
-
 class MobileRobot:
 
     def __init__(self, client, robotName) -> None:
@@ -42,10 +41,8 @@ class MobileRobot:
             currentOri = self.sim.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
             if abs(currentOri - targetOri) < 2.0:
                 break
-
+            time.sleep(0.05)
         self.Move(0, 0) 
-
-
 
     def ReadUltrasonicSensors(self):
         distance = []
@@ -66,7 +63,7 @@ if __name__ == '__main__':
 
     robot = MobileRobot(client, 'HEXA4S')
     
-    robot.Rotate2(-30, 90)
+    #robot.Rotate2(-30, 90)
     #robot.Move(-10,10)
 
     #distance = robot.ReadUltrasonicSensors()
