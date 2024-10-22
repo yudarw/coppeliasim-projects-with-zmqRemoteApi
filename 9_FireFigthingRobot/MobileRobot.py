@@ -1,6 +1,7 @@
 from coppeliasim_zmqremoteapi_client import *
 import math
 import time
+import threading
 
 class MobileRobot:
 
@@ -14,8 +15,10 @@ class MobileRobot:
         self.motorR2 = self.sim.getObject(f'/{robotName}/motor_4')        
         # Get sensor handle:
         self.ultrasonic_sensor = [self.sim.getObject(f'/{robotName}/ultrasonic_sensor{i + 1}') for i in range (12)]
+        self.ultrasonic_data = [0] * 12
         # Get vision sensor handle:
         self.camera_sensor = self.sim.getObject(f'/{robotName}/camera')
+        self.stop_thread_event = threading.Event()
 
     def Move(self, leftVel, rightVel):
         self.sim.setJointTargetVelocity(self.motorL1, leftVel * math.pi/180)
@@ -54,6 +57,20 @@ class MobileRobot:
             distance.append(dist * 100) # convert to cm
         return distance
     
+    def enable_sensing(self):
+        self.stop_thread_event.clear()
+        self.ultrasonic_thread = threading.Thread(target=self.thread_read_ultrasonic_sensor)
+        self.ultrasonic_thread.start()
+
+    def disable_sensing(self):
+        self.stop_thread_event.set()
+        self.ultrasonic_thread.join()
+
+    def thread_read_ultrasonic_sensor(self):
+        while not self.stop_thread_event.is_set(): 
+            self.ultrasonic_data = self.ReadUltrasonicSensors()
+            print(self.ultrasonic_data)
+            time.sleep(0.1) 
 
 
 if __name__ == '__main__':

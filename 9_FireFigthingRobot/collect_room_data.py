@@ -12,19 +12,22 @@ sim.startSimulation()
 # Initialize the robot instance
 robot = MobileRobot(client, 'HEXA4S')
 
-isRecoding = False
-gDistances = []
-room = 'room3'
+stop_sensing_event = threading.Event()
+
+gDistances = [0] * 12
+print(gDistances)
+room = 'room2'
 
 #
 def ReadUltrasonicSensor():
-    while isRecoding:
-        gDistances = robot.ReadUltrasonicSensors()
-        print(gDistances)
-        time.sleep(0.2)
+    global gDistances
+    while not stop_sensing_event.is_set():
+       gDistances = robot.ReadUltrasonicSensors()
+       print(gDistances)
+       time.sleep(0.2)
     
     # Save the ulrasonic sensor data to CSV file
-    #with open(f'{room}.csv', mode='w', newline='') as file:
+    # with open(f'{room}.csv', mode='w', newline='') as file:
     #    writer = csv.writer(file)
     #    writer.writerow(['Sensor1', 'Sensor2', 'Sensor3', 'Sensor4', 'Sensor5', 'Sensor6', 'Sensor7', 'Sensor8', 'Sensor9', 'Sensor10', 'Sensor11', 'Sensor12'])
     #    while isRecoding:
@@ -61,18 +64,9 @@ def ScanRoom3():
     pass
 
 
-# Start the thread to read the ultrasonic sensor
-isRecoding = True
-thread = threading.Thread(target=ReadUltrasonicSensor, args='')
-thread.start()
-
-time.sleep(5)
-
-#RotateAlignTheWall('right')
-
-# Stop the thread
-isRecoding = False
-thread.join()
-
+robot.enable_sensing()
+robot.Move(20, 20)
+time.sleep(3)
+robot.Move(0, 0)
+robot.disable_sensing()
 sim.stopSimulation()
-
