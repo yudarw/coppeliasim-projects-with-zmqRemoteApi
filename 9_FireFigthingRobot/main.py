@@ -1,17 +1,19 @@
 from coppeliasim_zmqremoteapi_client import *
 import math
 import time
-
 from MobileRobot import MobileRobot
 
 client = RemoteAPIClient()
 sim = client.require('sim')
 sim.startSimulation()
 
+# initialize the robot instance
 robot = MobileRobot(client, 'HEXA4S')
 
 # ----------------  Implement the Wall Following Algorithm ---------------- #
 def ScanWall(side):
+
+    # parameters for pid rotation
     Kp_rot = 2
     Ki_rot = 0.001   
     Kd_rot = 0.5
@@ -20,19 +22,21 @@ def ScanWall(side):
     pid_rot = 0
     sum_error_rot = 0
 
+    # parameters for pid translation
     Kp_trans = 2
     Ki_tans = 0
     Kd_tans = 0
     error_trans = 0
     last_error_trans = 0
     pid_trans = 0
-    wall_distance = 13           # 5 cm from the wall
 
-    Ts = 0.05
-    Sp = 120
+    wall_distance = 13      # 5 cm from the wall
+    Ts = 0.05               # Time sampling 
+    Sp = 120                # Initial speed
 
     while True:
-
+        
+        # Read distance
         dist = robot.ReadUltrasonicSensors()
         side_front_dist = 0
         side_back_dist = 0
@@ -69,20 +73,20 @@ def ScanWall(side):
 
         robot.Move(Sp + pid_rot + pid_trans, Sp - pid_rot - pid_trans)
 
-        # Check front sensor
+        # Check the front sensor, if the front sensor is too close rotate robot to the left
         if dist[0] < 15:
             robot.Rotate(-90, 90)
 
+        # Check the front side sensor to detect an intersection
+        # It will make the robot smoothly turn to the right.
         if dist[2] > 80:
             robot.Move(140, 40)
             time.sleep(0.9)
 
-                #print(f'{dist[3]}: Detect the intersection...')
-            #robot.Move(0, 0)
-            #break
-
         time.sleep(Ts)
 
+
+# Align the body of the robot with the wall
 def SetWallParallel(side):
     while True:
         dist = robot.ReadUltrasonicSensors()
@@ -96,7 +100,6 @@ def SetWallParallel(side):
             side_back_dist = dist[8]
         
         error = side_front_dist - side_back_dist
-        print(error)
         
         if error > 50:
             error = 50
@@ -110,9 +113,8 @@ def SetWallParallel(side):
         time.sleep(0.05)
     robot.Move(0, 0)
 
-def Demo():
-    pass
 
+# --------------- Test --------------------- #
 SetWallParallel('right')
 ScanWall('right')
 
