@@ -8,7 +8,7 @@ sim = client.require('sim')
 sim.startSimulation()
 
 # initialize the robot instance
-robot = MobileRobot(client, 'HEXA4S')
+robot = MobileRobot(client, 'HEXA4R')
 
 # ----------------  Implement the Wall Following Algorithm ---------------- #
 def ScanWall(side):
@@ -32,7 +32,7 @@ def ScanWall(side):
 
     wall_distance = 13      # 5 cm from the wall
     Ts = 0.05               # Time sampling 
-    Sp = 120                # Initial speed
+    Sp = 200                # Initial speed
 
     while True:
         
