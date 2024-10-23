@@ -3,7 +3,7 @@ import os
 sys.path.append(os.getcwd())
 
 from coppeliasim_zmqremoteapi_client import *
-from lib.MobileRobot import MobileRobot
+from lib.MobileRobot import Hexa4R
 import math
 import time
 import csv
@@ -13,7 +13,7 @@ import threading
 client = RemoteAPIClient()
 sim = client.require('sim')
 sim.startSimulation()
-robot = MobileRobot('HEXA4S')
+robot = Hexa4R('HEXA4R')
 
 gDistances = [0] * 12
 print(gDistances)

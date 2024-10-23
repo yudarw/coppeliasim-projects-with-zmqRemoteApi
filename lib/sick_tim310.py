@@ -20,19 +20,36 @@ class SickTIM310:
             print('Error: ', e)
             self.client.__del__()    
 
-    def getMapping(self):
-        
+    # Get the 2D mapping of the liDar sensor
+    def get2DMapping(self):       
         self.lidar_data = self.sim.callScriptFunction('get_data', self.script_handle)
         x = [self.lidar_data[3 * i] for i in range(270)]
         y = [self.lidar_data[3 * i + 1] for i in range(270)]
         return x, y
 
+    # Plot the 2D mapping of the image
+    def plot2DMapping(self):
+        x, y = self.get2DMapping()
+        plt.scatter(x, y)
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('2D Mapping of LiDAR Sensor Data')
+        #plt.savefig('lidar_2d_mapping.png')
+        plt.show()
+
+    # Angle is map from -45 to 225
     def  getDistance(self, angle):
+        # Make sure the angle is in the range of -45 to 225
+        if angle < -45 or angle > 225:
+            print('Error: Angle out of range')
+            return None
+
+        normalized_angle = angle + 45
 
         # Get the data from the sensor:
         self.lidar_data = self.sim.callScriptFunction('get_data', self.script_handle)
-        x = self.lidar_data[3 * angle]
-        y = self.lidar_data[3 * angle + 1]
+        x = self.lidar_data[3 * normalized_angle]
+        y = self.lidar_data[3 * normalized_angle + 1]
         
         # Calulate the norm of the vector to get the distance:
         distance = np.linalg.norm([x, y]) * 100
@@ -57,6 +74,7 @@ if __name__ == '__main__':
 
     sensor = SickTIM310('./SickTIM310')
     sensor.getAllDistances()
+    sensor.plot2DMapping()
 
 
 

@@ -2,7 +2,6 @@ import sys
 import os
 sys.path.append(os.getcwd())
 from coppeliasim_zmqremoteapi_client import *
-from lib.MobileRobot import MobileRobot
 import threading
 import time
 

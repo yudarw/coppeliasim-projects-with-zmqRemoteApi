@@ -42,7 +42,8 @@ class MobileRobot:
 
         while True:
             currentOri = self.sim.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
-            if abs(currentOri - targetOri) < 2.0:
+            print(abs(currentOri - targetOri))
+            if abs(currentOri - targetOri) < 4:
                 break
             time.sleep(0.05)
         self.Move(0, 0) 

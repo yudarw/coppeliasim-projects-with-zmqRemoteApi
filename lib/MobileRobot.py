@@ -3,7 +3,7 @@ import math
 import time
 import threading
 
-class MobileRobot:
+class Hexa4R:
 
     def __init__(self, robotName) -> None:
         self.client_main = RemoteAPIClient()
