@@ -34,7 +34,7 @@ robot = None
 lidar_sensor = None
 
 # Implement the wall-following alrgorithm
-def scan(side, dist):
+def scan(side, dist, speed=80):
     global sum_error_rot
     # Read distance
     #dist = robot.ReadUltrasonicSensors()
@@ -71,12 +71,13 @@ def scan(side, dist):
     #print(f'error_rot: {error_rot}, error_trans: {error_trans}')
     #print(f'dist from wall: {side_dist} cm')    
 
-    robot.Move(Sp + pid_rot + pid_trans, Sp - pid_rot - pid_trans)
+    robot.Move(speed + pid_rot + pid_trans, speed - pid_rot - pid_trans)
 
     # Check the front sensor, if the front sensor is too close rotate robot to the left
-    if dist[0] < 13:
-        robot.Rotate(-90, 90)
-        WallAlign(side=side)
+    #if dist[0] < 13:
+    #    robot.Rotate(-90, 90)
+    #    WallAlign(side=side)
+    
     # Check the front side sensor to detect an intersection
     # It will make the robot smoothly turn to the right.
     if dist[2] > 80:
@@ -87,6 +88,22 @@ def scan(side, dist):
 
 # Align the body of the robot with the wall
 def WallAlign(side):
+
+    # Search for the closest wall
+    while True:
+        dist = robot.ReadUltrasonicSensors()
+        side_dist = 0
+        if side == 'right':
+            side_dist = dist[3]
+        elif side == 'left':
+            side_dist = dist[9]
+
+        if side_dist > 30:
+            robot.Move(-90,90)
+        else:
+            break
+        
+    # Then rotate align the wall
     while True:
         dist = robot.ReadUltrasonicSensors()
         side_front_dist = 0
@@ -113,60 +130,103 @@ def WallAlign(side):
     robot.Move(0, 0)
 
 
-def exit_room():
+# ----------------------------------------------------------------------------- #
+# Algorithm to exit the room
+# ----------------------------------------------------------------------------- #
+def room_exit(room):
 
-    while True:
-        pass
+    if room == 'ROOM3' or room == 'ROOM4':        
+        while True:
+            dist = robot.ReadUltrasonicSensors()
+            if dist[0] < 20:
+                break
+            else:
+                scan('right',dist,speed=360)
+            time.sleep(0.1)
+    
+    elif room == 'ROOM2A':
+        robot.Rotate(-45, 90)
+        #robot.Move(90, 90)
+        while True:
+            dist = robot.ReadUltrasonicSensors()
+            if (dist[0] < 20):
+                break
+            else:
+                robot.Move(150, 150)
+            time.sleep(0.1)
+        
+        robot.Move(0, 0)
+        WallAlign('right')
 
+        while True:
+            dist = robot.ReadUltrasonicSensors()
+            scan ('right', dist)
+            if dist[9] > 200:
+                time.sleep(1)
+                break
+            time.sleep(0.1)
 
-def find_door():
+    elif room == 'ROOM2B':
+        while True:
+            dist = robot.ReadUltrasonicSensors()
+            scan ('right', dist)
+            if dist[9] > 200:
+                time.sleep(1)
+                break
+            time.sleep(0.1)
+    robot.Move(0, 0)
+    print('Robot has exit the room!')
+
+# --------------------------------------------------------------------------- #
+# Algorithm for room detection, we utilize the different of the room size
+# to identify the room number.
+# --------------------------------------------------------------------------- #
+def room_detection():
+    room='Unknown'
+    # First align the robot to the closest wall
     WallAlign('right')
-
+    # Then we looking for the corner position to detect the room
     while True:
         distance = robot.ReadUltrasonicSensors()
         scan('right', distance)
 
-        lidar = lidar_sensor.getAllDistances()
-        lidar_front = np.mean(lidar[130:140])
-        lidar_diagonal = np.mean(lidar[175:185])
-        lidar_left = np.mean(lidar[220:230])
-        print(f'Detect corner: L={lidar_left}, F={lidar_front}, D={lidar_diagonal}')
-        
-        if lidar_front > 120:
-            #t = math.sqrt(lidar_diagonal * lidar_diagonal - lidar_left * lidar_left)
-            #room_size = (lidar_left * t) / 2
-            room_size = lidar_diagonal * lidar_left
-            print(f's={lidar_diagonal}, a={lidar_left}, room_size={room_size}')
-            
-            
-            if room_size > 6000 and room_size < 9000:
-                print('Facing the door, and detect room 3')
-            elif room_size < 2000:
-                print('Detect ROOM2, facing door')
-            else:
-                print('Detect ROOM1, facing door')
-            break
+        # Detect the corner to start the room scanning:
+        if distance[0] < 13:
+            robot.Rotate(-90, 90)
+            WallAlign('right')
+            distance = robot.ReadUltrasonicSensors()
+            lidar = lidar_sensor.getAllDistances()
+            lidar_front = np.mean(lidar[130:140])
+            lidar_diagonal = np.mean(lidar[175:185])
+            lidar_left = distance[9]
+            lidar_left_mean = np.mean(lidar[180:269])
+            room=''
+            if lidar_front > 80:
 
-        # Room 4
-        elif lidar_front > 80 and lidar_left < 70:
-            #t = math.sqrt(lidar_diagonal * lidar_diagonal - lidar_left * lidar_left)
-            #room_size = (lidar_left * t) / 2
-            room_size = lidar_diagonal * lidar_left
-            print(f's={lidar_diagonal}, a={lidar_left}, room_size={room_size}')
+                # ROOM4:
+                if (lidar_left > 55 and lidar_left < 75) and (lidar_front > 90 and lidar_front < 120) and (lidar_left_mean > 45 and lidar_left_mean < 65):
+                    room = 'ROOM4'
+                elif (lidar_left > 55 and lidar_left < 80) and (lidar_front > 90 and lidar_front < 120) and (lidar_left_mean > 65 and lidar_left_mean < 85):
+                    room = "ROOM2A"
+                elif (lidar_left > 90 and lidar_left < 110) and (lidar_front > 130 and lidar_front < 300) and (lidar_left_mean > 60 and lidar_left_mean < 80):
+                    room = "ROOM2B"
+                elif (lidar_left > 60 and lidar_left < 85) and (lidar_front > 130  and lidar_front < 160) and (lidar_left_mean > 60 and lidar_left_mean < 80):
+                    room = "ROOM3"
+                elif (lidar_left > 200) and (lidar_front > 250 and lidar_front < 300):
+                    room = "ROOM1A"
+                elif (lidar_left > 110 and lidar_left < 130) and (lidar_front > 80 and lidar_front < 100):
+                    room = "ROOM1B"
 
-            if room_size < 2500:
-                print('Facing the door, and detect room 4')
-            else:
-                print('Detect ROOM2, not facing DOOR')
-            
-            break
-
-    print('Robot is facing to the door')
+                print(f'L={lidar_left}, F={lidar_front}, L_mean={lidar_left_mean}, ROOM={room}')
+                break
+    
+    print('Room detection completed!')
     robot.Move(0, 0)
+    return room
+
 
 if __name__ == '__main__':
-    
-    
+
     # -------------- Start Simulation -------------- #
     client = RemoteAPIClient()
     sim = client.require("sim")
@@ -176,7 +236,8 @@ if __name__ == '__main__':
     robot = Hexa4R("HEXA4R", client=client)
     lidar_sensor = SickTIM310('./SickTIM310',client=client)
 
-    find_door()
+    room=room_detection()
+    room_exit(room)
 
     time.sleep(5)
     sim.stopSimulation()
