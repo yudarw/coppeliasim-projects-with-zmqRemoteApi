@@ -7,13 +7,16 @@ import numpy as np
 
 class SickTIM310:
 
-    def __init__(self, sensor_name):
+    def __init__(self,sensor_name,client=None):
         try:
-            self.client = RemoteAPIClient()
-            self.sim = self.client.require('sim')
+            
+            if client == None:
+                client = RemoteAPIClient()
+            
+            self.sim = client.require('sim')
             # Get the sensor and script handle
             self.sensor = self.sim.getObject(f'{sensor_name}')
-            self.script_handle = self.sim.getScript(sim.scripttype_childscript,self.sensor)
+            self.script_handle = self.sim.getScript(self.sim.scripttype_childscript,self.sensor)
             self.lidar_data = []
 
         except Exception as e:
@@ -63,7 +66,7 @@ class SickTIM310:
             y = self.lidar_data[3 * i + 1]
             distance = np.linalg.norm([x, y]) * 100
             distances.append(distance)
-            print('Angle: ', i, 'Distance: ', distance)
+            #print('Angle: ', i, 'Distance: ', distance)
         return distances
 
 

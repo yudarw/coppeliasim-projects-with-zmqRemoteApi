@@ -10,11 +10,6 @@ import csv
 import threading
 
 
-client = RemoteAPIClient()
-sim = client.require('sim')
-sim.startSimulation()
-robot = Hexa4R('HEXA4R')
-
 gDistances = [0] * 12
 print(gDistances)
 room = 'room2'
@@ -47,15 +42,18 @@ def RotateAlignTheWall(side):
 def ScanRoom3():
     pass
 
-robot.start_sensing()
 
-start_time = time.time()    
-while time.time() - start_time < 10:
-    gDistances = robot.ultrasonic_data
-    print(gDistances[0])
-    time.sleep(0.1)
 
-print('Stop sensing')
-robot.stop_sensing()
-time.sleep(1)
-sim.stopSimulation()
+if __name__ == '__main__':
+    client = RemoteAPIClient()
+    sim = client.require('sim')
+    sim.startSimulation()
+    print('Simulation is started')
+
+    robot = Hexa4R('HEXA4R')
+    
+    print('Stop sensing')
+    robot.stop_sensing()
+    time.sleep(1)
+    sim.stopSimulation()
+    print('Simulation is stopped')

@@ -5,9 +5,15 @@ import threading
 
 class Hexa4R:
 
-    def __init__(self, robotName) -> None:
-        self.client_main = RemoteAPIClient()
-        self.sim = self.client_main.require('sim')
+    def __init__(self, robotName, client=None) -> None:
+
+        if client == None:
+            client = RemoteAPIClient()
+        self.sim = client.require('sim')
+        
+        self.sim_actuator = client.require('sim')
+        self.sim_sensor = client.require('sim')
+        
         # Get robot and motors handle
         self.simrobot = self.sim.getObject(f'/{robotName}')
         self.motorL1 = self.sim.getObject(f'/{robotName}/motor_1')
@@ -22,13 +28,13 @@ class Hexa4R:
         self.stop_sensing_thread_event = threading.Event()
 
     def Move(self, leftVel, rightVel):
-        self.sim.setJointTargetVelocity(self.motorL1, leftVel * math.pi/180)
-        self.sim.setJointTargetVelocity(self.motorL2, leftVel * math.pi/180)
-        self.sim.setJointTargetVelocity(self.motorR1, rightVel* math.pi/180)
-        self.sim.setJointTargetVelocity(self.motorR2, rightVel* math.pi/180)
+        self.sim_actuator.setJointTargetVelocity(self.motorL1, leftVel * math.pi/180)
+        self.sim_actuator.setJointTargetVelocity(self.motorL2, leftVel * math.pi/180)
+        self.sim_actuator.setJointTargetVelocity(self.motorR1, rightVel* math.pi/180)
+        self.sim_actuator.setJointTargetVelocity(self.motorR2, rightVel* math.pi/180)
 
     def Rotate(self, tetha, speed):
-        initOri = self.sim.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
+        initOri = self.sim_actuator.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
         targetOri = initOri - tetha
         
         if targetOri > 180:
@@ -42,8 +48,8 @@ class Hexa4R:
             self.Move(speed, -speed)
 
         while True:
-            currentOri = self.sim.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
-            if abs(currentOri - targetOri) < 2.0:
+            currentOri = self.sim_actuator.getObjectOrientation(self.simrobot, -1)[2] * 180 / math.pi
+            if abs(currentOri - targetOri) < 5.0:
                 break
             time.sleep(0.05)
         self.Move(0, 0) 
@@ -51,7 +57,7 @@ class Hexa4R:
     def ReadUltrasonicSensors(self):
         distance = []
         for i in range(12):
-            ret = self.sim.readProximitySensor(self.ultrasonic_sensor[i])
+            ret = self.sim_sensor.readProximitySensor(self.ultrasonic_sensor[i])
             dist = ret[1]
             if dist == 0:
                 dust = 3.00;           
