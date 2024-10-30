@@ -9,7 +9,6 @@ client = RemoteAPIClient()
 sim = client.require('sim')
 sim.startSimulation()
 
-
 class UR10:
     
     def __init__(self, client, robotName):
@@ -31,7 +30,7 @@ class UR10:
 
     # Get the position of the object relative to the robot base
     def GetObjectPosition(self, objectName):
-        handle = sim.getObject(f'/{objectName}')
+        handle = self.sim.getObject(f'/{objectName}')
         pos = self.sim.getObjectPosition(handle, self.simrobot)
         ori = self.sim.getObjectOrientation(handle, self.simrobot)
         pos = [pos[i] * 1000 for i in range(3)]
@@ -55,7 +54,8 @@ class UR10:
         pos = [pos[i] * 1000 for i in range(3)]
         ori = [ori[i] * 180 / math.pi for i in range(3)]
         return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
-    
+
+    # Read the joint position of the robot (deg)    
     def ReadJointPosition(self):
         jointPos = [self.sim.getJointPosition(joint) * 180 / math.pi for joint in self.simJoints]
         return jointPos
@@ -70,6 +70,7 @@ class UR10:
         #self.simIK.handleGroup(self.ikEnv, self.ikGroup, {'syncWorlds' : True, 'allowError' : True})
         self.simIK.applyIkEnvironmentToScene(self.ikEnv, self.ikGroup)
     
+    # Set joint position
     def SetJointPosition(self, targetJointPos):
         targetJointPos = [joint * math.pi / 180 for joint in targetJointPos]
         for i in range(len(self.simJoints)):
@@ -78,6 +79,7 @@ class UR10:
         #self.simIK.handleGroup(self.ikEnv, self.ikGroup, {'syncWorlds' : True, 'allowError' : True})
         #self.simIK.applyIkEnvironmentToScene(self.ikEnv, self.ikGroup)
 
+    # Move linear using interpolation
     def MoveL(self, targetPos, speed):
         initialPos = self.ReadPosition()
         interpolated_points, steps, time_per_step = linear_interpolation(initialPos, targetPos, speed, speed/15)
@@ -87,6 +89,9 @@ class UR10:
                 time_per_step = 0.05
             time.sleep(time_per_step)
     
+    # Move linear using the coppeliasim MoveL function:
+    def MoveL2(self, targetPos, speed):
+        pass
 
     def MoveJ(self, targetJointPos, speed):
         initialJointPos = self.ReadJointPosition()
@@ -94,11 +99,6 @@ class UR10:
         for point in interpolated_points:
             self.SetJointPosition(point)
             time.sleep(time_per_step)
-
-    # Linear movement by using coppeliasim moveToPose
-    def MoveL_2(self, targetPos, speed):
-        pass
-
     
     def MoveToConfig(self):
         pass
