@@ -95,11 +95,11 @@ class UniversalRobot:
             time.sleep(time_per_step)
     
     def SetSpeed(self, speed):
-        self.ikMaxVel = speed / 1000
-        self.ikMaxAccel = self.ikMaxVel * 2
-        self.ikMaxJerk = self.ikMaxVel * 2
+        self.ikMaxVel = [speed / 1000, speed / 1000, speed / 1000, 360 * math.pi / 180] 
+        self.ikMaxAccel = [speed * 0.5 / 1000, speed * 0.5 / 1000, speed * 0.5 / 1000, 180 * math.pi / 180]
+        self.ikMaxJerk = [speed * 0.5 / 1000, speed * 0.5 / 1000, speed * 0.5 / 1000, 90 * math.pi / 180]
    
-    def ikCallback(self,target_quaternion):
+    def ikCallback(self,target_quaternion, a, b):
         self.sim.setObjectPose(self.simTarget, -1, target_quaternion)
         self.simIK.applyIkEnvironmentToScene(self.ikEnv, self.ikGroup)
 
@@ -113,6 +113,17 @@ class UniversalRobot:
         self.sim.setObjectOrientation(self.simTarget, self.simRobot, ori)
         target_quaternion = self.sim.getObjectPose(self.simTarget, -1)
         current_quaternion = self.sim.getObjectPose(self.simTip, -1)
+
+        param = {
+            'pose' : current_quaternion,
+            'target_pos' : target_quaternion,
+            'maxVel' : self.ikMaxVel,
+            'maxAccel' : self.ikMaxAccel,
+            'maxJerk' : self.ikMaxJerk,
+            'callback' : self.ikCallback,
+            'auxData' : None
+        }
+
         self.sim.moveToPose(-1, current_quaternion, self.ikMaxVel, self.ikMaxAccel, self.ikMaxJerk, target_quaternion, self.ikCallback, None, None)
 
 
@@ -137,6 +148,17 @@ if __name__ == '__main__':
     targetPosition2 = robot.GetObjectPosition('target2')
     print(f"position of target 2: {targetPosition2}")
 
-    robot.MoveL(targetPosition1, 100)
+    targetPosition3 = robot.GetObjectPosition('target3')
+    print(f"position of target 3: {targetPosition3}")
+
+    for i in range(4):
+        robot.MoveL(targetPosition1, 50)
+        robot.MoveL(targetPosition3, 50)
+        robot.MoveL(targetPosition2, 50)
+        robot.MoveL(targetPosition3, 50)
+    
+    print('Pose completed!')
+    time.sleep(3)
+    sim.stopSimulation()
 
     
