@@ -5,14 +5,24 @@ sys.path.append(os.getcwd())
 from coppeliasim_zmqremoteapi_client import *
 from lib.ArmRobot import UniversalRobot, Gripper
 import time
+import csv
 
+client = RemoteAPIClient()
+sim = client.require('sim')
+armRobot = UniversalRobot('UR10')
+
+def SavePalletPositiion():
+    with open('pallet_positions.csv', mode='w') as file:
+        writer = csv.writer(file)
+        for i in range(21):
+            pos = armRobot.GetObjectPosition(f'Cartoons{i + 1}')
+            print(f"position of Cartoons{i + 1}: {pos}")
+            writer.writerow(pos)
 
 def main():
-    client = RemoteAPIClient()
-    sim = client.require('sim')
     sim.startSimulation()
 
-    armRobot = UniversalRobot('UR10')
+    
     armRobot.AttachGripper('vacuum_gripper')
     armRobot.gripper.Catch()
     
@@ -44,5 +54,7 @@ def main():
     sim.stopSimulation()
 
 if __name__ == '__main__':
-    main()
+    #main()
+    sim.startSimulation()
+    SavePalletPositiion()
 
