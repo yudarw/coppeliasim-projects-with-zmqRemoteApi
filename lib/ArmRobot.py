@@ -1,8 +1,12 @@
+import sys
+import os
+sys.path.append(os.getcwd())
+
 from coppeliasim_zmqremoteapi_client import *
 import math
 import time
-from interpolation import linear_interpolation, joint_interpolation
-from homogeneous_transform import *
+from lib.interpolation import linear_interpolation, joint_interpolation
+from lib.homogeneous_transform import *
 import numpy as np
 
 # Universal Robot Class
@@ -33,6 +37,10 @@ class UniversalRobot:
         self.ikMaxVel = 0.2
         self.ikMaxAccel = 0.1
         self.ikMaxJerk = 0.1
+
+        self.gripper = None
+        self.gripper_type_suction = 0
+        self.gripper_type_gripper = 1
 
 
     # Get the position of the object relative to the robot base
@@ -126,6 +134,24 @@ class UniversalRobot:
 
         self.sim.moveToPose(-1, current_quaternion, self.ikMaxVel, self.ikMaxAccel, self.ikMaxJerk, target_quaternion, self.ikCallback, None, None)
 
+
+    def AttachGripper(self, gripper_name):
+        self.gripper = Gripper(self.sim, gripper_script_name=f'/{self.robotName}/{gripper_name}')
+
+
+class Gripper(UniversalRobot):
+    def __init__(self, sim, gripper_script_name):
+        self.sim = sim
+        self.gripper_script = self.sim.getScript(self.sim.scripttype_childscript, gripper_script_name)
+
+    def Catch(self):
+        self.sim.callScriptFunction('set_gripper',self.gripper_script, True)
+        print('Set gripper catch()')
+        
+    def Release(self):
+        self.sim.callScriptFunction('set_gripper',self.gripper_script, False)
+        print('Set gripper release()')
+        
 
 
 
