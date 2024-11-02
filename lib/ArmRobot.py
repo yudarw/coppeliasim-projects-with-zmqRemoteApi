@@ -52,6 +52,14 @@ class UniversalRobot:
         ori = [ori[i] * 180 / math.pi for i in range(3)]
         return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
     
+    def GetObjectPosition2(self, objectHandle):
+        handle = objectHandle
+        pos = self.sim.getObjectPosition(handle, self.simRobot)
+        ori = self.sim.getObjectOrientation(handle, self.simRobot)
+        pos = [pos[i] * 1000 for i in range(3)]
+        ori = [ori[i] * 180 / math.pi for i in range(3)]
+        return [pos[0],pos[1],pos[2],ori[0],ori[1],ori[2]]
+
     # Get object 4x4 object matrix
     def GetObjectMatrix(self, objectName):
         handle = self.sim.getObject(f'/{objectName}')
@@ -104,8 +112,8 @@ class UniversalRobot:
     
     def SetSpeed(self, speed):
         self.ikMaxVel = [speed / 1000, speed / 1000, speed / 1000, 360 * math.pi / 180] 
-        self.ikMaxAccel = [speed * 0.5 / 1000, speed * 0.5 / 1000, speed * 0.5 / 1000, 180 * math.pi / 180]
-        self.ikMaxJerk = [speed * 0.5 / 1000, speed * 0.5 / 1000, speed * 0.5 / 1000, 90 * math.pi / 180]
+        self.ikMaxAccel = [speed * 2 / 1000, speed * 2 / 1000, speed * 2 / 1000, 720 * math.pi / 180]
+        self.ikMaxJerk = [speed * 2 / 1000, speed * 2 / 1000, speed * 2 / 1000,720 * math.pi / 180]
    
     def ikCallback(self,target_quaternion, a, b):
         self.sim.setObjectPose(self.simTarget, -1, target_quaternion)
@@ -139,6 +147,8 @@ class UniversalRobot:
         self.gripper = Gripper(self.sim, gripper_script_name=f'/{self.robotName}/{gripper_name}')
 
 
+
+# Gripper
 class Gripper(UniversalRobot):
     def __init__(self, sim, gripper_script_name):
         self.sim = sim
@@ -146,11 +156,11 @@ class Gripper(UniversalRobot):
 
     def Catch(self):
         self.sim.callScriptFunction('set_gripper',self.gripper_script, True)
-        print('Set gripper catch()')
+        #print('Set gripper catch...')
         
     def Release(self):
         self.sim.callScriptFunction('set_gripper',self.gripper_script, False)
-        print('Set gripper release()')
+        #print('Set gripper release...')
         
 
 
