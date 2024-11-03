@@ -33,10 +33,15 @@ class UniversalRobot:
         self.ikGroup = self.simIK.createGroup(self.ikEnv)
         self.simIK.addElementFromScene(self.ikEnv, self.ikGroup, self.simRobot, self.simTip, self.simTarget, self.simIK.constraint_pose)
 
-        # Inverse Kinematic
+        # Inverse Kinematic mode parameters
         self.ikMaxVel = 0.2
         self.ikMaxAccel = 0.1
         self.ikMaxJerk = 0.1
+
+        # Joint mode speed parameters
+        self.jointVel = [180, 180, 180, 180, 180, 180]
+        self.jointAccel = [40 * math.pi / 180, 40 * math.pi / 180, 40 * math.pi / 180, 40 * math.pi / 180, 40 * math.pi / 180, 40 * math.pi / 180]
+        self.jointJerk = [80 * math.pi / 180, 80 * math.pi / 180, 80 * math.pi / 180, 80 * math.pi / 180, 80 * math.pi / 180, 80 * math.pi / 180]
 
         self.gripper = None
         self.gripper_type_suction = 0
@@ -142,7 +147,38 @@ class UniversalRobot:
 
         self.sim.moveToPose(-1, current_quaternion, self.ikMaxVel, self.ikMaxAccel, self.ikMaxJerk, target_quaternion, self.ikCallback, None, None)
 
+    def fkCallback(self, target_joint_pos, a, b, c):
+        for i in range(6):
+            self.sim.setJointTargetPosition(self.simJoints[i], target_joint_pos[i])
+            #if self.sim.IsDynamicallyEnabled(self.simJoints[i]):
+            #    self.sim.setJointTargetPosition(self.simJoints[i], target_joint_pos[i])
+            #else:
+            #    self.sim.setJointPosition(self.simJoints[i], target_joint_pos[i])
 
+
+    # Move joint
+    def MoveJ(self, targetJointPos, speed):
+        self.SetJointSpeed(speed)
+        
+        #currentJointPos = self.ReadJointPosition()
+        #_currentJointPos = [currentJointPos[i] * math.pi / 180 for i in range(6)]   
+
+        # Convert degree to radian
+        _targetJointPos = [targetJointPos[i] * math.pi / 180 for i in range(6)]
+        param = {
+            'joints' : self.simJoints,
+            'targetPos' : _targetJointPos,
+            'maxVel' : self.jointVel,
+            'maxAccel' : self.jointAccel,
+            'maxJerk' : self.jointJerk,
+        }
+        
+        self.sim.moveToConfig(param)
+        #self.sim.moveToConfig(-1,_currentJointPos,None,None,self.jointVel,self.jointAccel,self.jointJerk,_targetJointPos,None,self.fkCallback,None,None)
+
+    def SetJointSpeed(self, speed):
+        self.jointVel = [speed * math.pi / 180 for i in range(6)]
+        
     def AttachGripper(self, gripper_name):
         self.gripper = Gripper(self.sim, gripper_script_name=f'/{self.robotName}/{gripper_name}')
 
