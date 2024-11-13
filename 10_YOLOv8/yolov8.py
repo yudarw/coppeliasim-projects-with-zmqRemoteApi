@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import cv2 as cv
 import matplotlib.pyplot as plt
 
-model = YOLO('yolov8n.pt')
+model = YOLO('yolov8m.pt')
 cap = cv.VideoCapture(0)
 while True:
     ret, frame = cap.read()

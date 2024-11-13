@@ -121,7 +121,7 @@ def set_hydrolic_position(height):
 # ------------------------------------------------------------------------ #
 # Main function
 # ------------------------------------------------------------------------ #
-def main():
+def main2():
     sim.startSimulation()
 
     # Get proximity sensor handle to detect the incoming object
@@ -173,6 +173,15 @@ def main():
     # Stop the simulation
     time.sleep(5)
     sim.stopSimulation()
+
+
+def main():
+    sim.startSimulation()
+    speed = 100
+    pos1 = [570, 0, 87, 180, 0, 90]
+    pos2 = [570, 0, 200, 180, 0, 90]
+    armRobot.MoveL(pos1, speed)
+    armRobot.MoveL(pos2, speed)
 
 
 if __name__ == '__main__':
